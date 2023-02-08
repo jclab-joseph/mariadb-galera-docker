@@ -1,16 +1,12 @@
 FROM docker.io/bitnami/minideb:bullseye
 
+ARG TARGETARCH
+
 LABEL org.opencontainers.image.authors="https://github.com/jclab-joseph" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.source="https://github.com/jclab-joseph/mariadb-galera-docker" \
       org.opencontainers.image.title="mariadb-galera" \
       org.opencontainers.image.vendor="JC-Lab"
-
-RUN apt-get update && \
-    apt-get install -y galera-4 galera-arbitrator-4 mariadb-server-10.5
-
-RUN mkdir -p /opt/bitnami && \
-    ln -s /usr /opt/bitnami/mariadb
 
 ENV HOME="/" \
     OS_ARCH="${TARGETARCH:-amd64}" \
@@ -18,7 +14,9 @@ ENV HOME="/" \
     OS_NAME="linux"
 
 COPY prebuildfs /
-RUN install_packages ca-certificates curl iproute2 ldap-utils libaio1 libaudit1 libcap-ng0 libcrypt1 libgcc-s1 libicu67 libldap-common liblzma5 libncurses6 libpam-ldapd libpam0g libssl1.1 libstdc++6 libtinfo6 libxml2 nslcd procps psmisc rsync socat zlib1g
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN install_packages ca-certificates curl iproute2 ldap-utils libaio1 libaudit1 libcap-ng0 libcrypt1 libgcc-s1 libicu67 libldap-common liblzma5 libncurses6 libpam-ldapd libpam0g libssl1.1 libstdc++6 libtinfo6 libxml2 nslcd procps psmisc rsync socat zlib1g \
+    galera-4 galera-arbitrator-4 mariadb-server-10.5
 RUN mkdir -p /tmp/bitnami/pkg/cache/ && cd /tmp/bitnami/pkg/cache/ && \
     COMPONENTS=( \
       "ini-file-1.4.5-0-linux-${OS_ARCH}-debian-11" \
@@ -34,9 +32,12 @@ RUN mkdir -p /tmp/bitnami/pkg/cache/ && cd /tmp/bitnami/pkg/cache/ && \
     done
 RUN apt-get autoremove --purge -y curl && \
     apt-get update && apt-get upgrade -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists /var/cache/apt/archives \
+    apt-get clean && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 RUN chmod g+rwX /opt/bitnami
 RUN mkdir /docker-entrypoint-initdb.d
+
+RUN mkdir -p /opt/bitnami && \
+    ln -s /usr /opt/bitnami/mariadb
 
 COPY rootfs /
 RUN /opt/bitnami/scripts/mariadb-galera/postunpack.sh
