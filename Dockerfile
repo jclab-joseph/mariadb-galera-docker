@@ -37,7 +37,10 @@ RUN chmod g+rwX /opt/bitnami
 RUN mkdir /docker-entrypoint-initdb.d
 
 RUN mkdir -p /opt/bitnami && \
-    ln -s /usr /opt/bitnami/mariadb
+    ln -s /usr /opt/bitnami/mariadb && \
+    rm -rf /etc/mysql/my.cnf && \
+    ln -s /opt/bitnami/mariadb/conf/my.cnf /etc/mysql/my.cnf && \
+    ln -s /usr/lib/mysql/plugin /opt/bitnami/mariadb/plugin
 
 COPY rootfs /
 RUN /opt/bitnami/scripts/mariadb-galera/postunpack.sh
