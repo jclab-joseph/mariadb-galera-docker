@@ -1,0 +1,34 @@
+name: Publish
+on:
+  push: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ARCH: amd64
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set Taged Image Name
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: |
+        export SHORT_COMMIT=${GITHUB_SHA::8}
+        export IMAGE_VERSION=10.5-debian-11-${SHORT_COMMIT}
+        echo "NEED_IMAGE_PUSH=true" >> $GITHUB_ENV
+        echo "LATEST_IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/mariadb-galera:latest" >> $GITHUB_ENV
+        echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/mariadb-galera:${IMAGE_VERSION}" >> $GITHUB_ENV
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      if: ${{ env.NEED_IMAGE_PUSH == 'true' }}
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.CR_PAT }}
+    - name: build and push
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: Dockerfile
+        push: ${{ env.NEED_IMAGE_PUSH == 'true' }}
+        tags: |
+          ${{ env.LATEST_IMAGE_NAME }}
+          ${{ env.IMAGE_NAME }}
