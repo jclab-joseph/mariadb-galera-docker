@@ -17,7 +17,7 @@ set -o pipefail
 
 EXEC="${DB_BIN_DIR}/garbd"
 
-flags=("--group=${MARIADB_GALERA_CLUSTER_NAME}" "--address=${MARIADB_GALERA_CLUSTER_ADDRESS}")
+flags=("--name=${get_node_name}" "--group=${MARIADB_GALERA_CLUSTER_NAME}" "--address=${MARIADB_GALERA_CLUSTER_ADDRESS}")
 
 if is_boolean_yes "$DB_ENABLE_TLS" && ! grep -q "socket.ssl_cert=" "$DB_TLS_CERT_FILE"; then
     info "Setting ENABLE_TLS"
